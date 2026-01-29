@@ -17,7 +17,7 @@ def handler(event, context):
 
     run_id = _utc_run_id()
 
-    # 1) Fetch API (JSON)
+
     req = urllib.request.Request(
         source_api_url,
         headers={"User-Agent": "fuel-pipeline/1.0"}
@@ -30,7 +30,7 @@ def handler(event, context):
     if not results:
         raise Exception("API returned 0 results. Check SOURCE_API_URL / where / limit.")
 
-    # 2) Write RAW to S3
+
     raw_key = f"raw/run_id={run_id}/fuel_raw_{run_id}.json"
     s3.put_object(
         Bucket=bucket,
@@ -39,7 +39,7 @@ def handler(event, context):
         ContentType="application/json"
     )
 
-    # 3) Start Glue Job (transform RAW -> CURATED)
+
     input_path = f"s3://{bucket}/{raw_key}"
     output_path = f"s3://{bucket}/curated/run_id={run_id}/"
 

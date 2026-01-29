@@ -16,9 +16,7 @@ provider "aws" {
   region = var.aws_region
 }
 
-# ---------------------------
-# S3
-# ---------------------------
+
 resource "aws_s3_bucket" "fuel" {
   bucket        = var.bucket_name
   force_destroy = true
@@ -41,7 +39,7 @@ resource "aws_s3_bucket_server_side_encryption_configuration" "fuel" {
   }
 }
 
-# Upload du script Glue dans S3 (automatique)
+
 resource "aws_s3_object" "glue_script" {
   bucket = aws_s3_bucket.fuel.id
   key    = "scripts/fuel_ingest.py"
@@ -49,16 +47,12 @@ resource "aws_s3_object" "glue_script" {
   etag   = filemd5("${path.module}/glue/fuel_ingest.py")
 }
 
-# ---------------------------
-# SNS (alerts)
-# ---------------------------
+
 resource "aws_sns_topic" "alerts" {
   name = var.sns_topic_name
 }
 
-# ---------------------------
-# IAM - Lambda
-# ---------------------------
+
 data "aws_iam_policy_document" "lambda_assume" {
   statement {
     actions = ["sts:AssumeRole"]
@@ -81,7 +75,7 @@ resource "aws_iam_role_policy" "lambda_policy" {
   policy = jsonencode({
     Version = "2012-10-17",
     Statement = [
-      # Logs
+
       {
         Effect = "Allow",
         Action = [
@@ -91,7 +85,7 @@ resource "aws_iam_role_policy" "lambda_policy" {
         ],
         Resource = "*"
       },
-      # S3 write raw
+
       {
         Effect = "Allow",
         Action = [
@@ -104,7 +98,7 @@ resource "aws_iam_role_policy" "lambda_policy" {
           "${aws_s3_bucket.fuel.arn}/*"
         ]
       },
-      # Start Glue
+
       {
         Effect = "Allow",
         Action = [
@@ -112,7 +106,7 @@ resource "aws_iam_role_policy" "lambda_policy" {
         ],
         Resource = "*"
       },
-      # SNS publish (optionnel)
+
       {
         Effect = "Allow",
         Action = ["sns:Publish"],
@@ -122,7 +116,7 @@ resource "aws_iam_role_policy" "lambda_policy" {
   })
 }
 
-# Package Lambda (zip)
+
 data "archive_file" "lambda_zip" {
   type        = "zip"
   source_dir  = "${path.module}/lambda"
@@ -151,9 +145,7 @@ resource "aws_lambda_function" "fuel_ingest" {
   }
 }
 
-# ---------------------------
-# IAM - Glue
-# ---------------------------
+
 data "aws_iam_policy_document" "glue_assume" {
   statement {
     actions = ["sts:AssumeRole"]
@@ -176,7 +168,7 @@ resource "aws_iam_role_policy" "glue_policy" {
   policy = jsonencode({
     Version = "2012-10-17",
     Statement = [
-      # S3 read/write
+
       {
         Effect = "Allow",
         Action = [
@@ -189,7 +181,7 @@ resource "aws_iam_role_policy" "glue_policy" {
           "${aws_s3_bucket.fuel.arn}/*"
         ]
       },
-      # CloudWatch Logs
+
       {
         Effect = "Allow",
         Action = [
@@ -199,7 +191,7 @@ resource "aws_iam_role_policy" "glue_policy" {
         ],
         Resource = "*"
       },
-      # SNS publish
+
       {
         Effect = "Allow",
         Action = ["sns:Publish"],
@@ -233,9 +225,7 @@ resource "aws_glue_job" "fuel_job" {
   }
 }
 
-# ---------------------------
-# EventBridge -> Lambda (schedule)
-# ---------------------------
+
 resource "aws_cloudwatch_event_rule" "schedule" {
   name                = "${var.project_name}-schedule"
   schedule_expression = var.schedule_expression

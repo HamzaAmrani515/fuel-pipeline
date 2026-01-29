@@ -73,8 +73,8 @@ Athena → Export CSV → Power BI
 
 ## Screenshots (preuves)
 
-### 9) schema generale 
-![Athena - 2](Docs/screenshots/img_9.png)
+
+
 
 ### 1)  
 ![S3 - 1](Docs/screenshots/img.png)
