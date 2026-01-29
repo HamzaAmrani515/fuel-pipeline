@@ -98,6 +98,7 @@ Athena → Export CSV → Power BI
 ### 7) 
 ![Athena - 1](Docs/screenshots/img_8.png)
 
-### 8) 
-![Athena - 2](Docs/screenshots/img_8.png)
 
+
+### 9) 
+![Athena - 2](Docs/screenshots/img_10.png)
