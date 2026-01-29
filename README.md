@@ -94,12 +94,10 @@ Athena → Export CSV → Power BI
 ### 6) 
 ![Lambda - 1](Docs/screenshots/img_5.png)
 
-### 7) 
-![EventBridge - 1](Docs/screenshots/img_6.png)
 
-### 8) 
+### 7) 
 ![Athena - 1](Docs/screenshots/img_8.png)
 
-### 9) 
+### 8) 
 ![Athena - 2](Docs/screenshots/img_8.png)
 
