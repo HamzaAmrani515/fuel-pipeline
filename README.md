@@ -66,3 +66,6 @@ Athena -> Export CSV -> Power BI
 
 ### 9) Athena Results
 ![Athena - 2](Docs/screenshots/img_8.png)
+
+### 9) schema generale 
+![Athena - 2](Docs/screenshots/img_9.png)
