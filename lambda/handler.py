@@ -1,47 +1,61 @@
 import os
 import json
-import uuid
-import datetime
-import urllib.request
-
 import boto3
+import urllib.request
+from datetime import datetime, timezone
 
 s3 = boto3.client("s3")
 glue = boto3.client("glue")
 
+def _utc_run_id() -> str:
+    return datetime.now(timezone.utc).strftime("%Y%m%d_%H%M%S")
 
-def lambda_handler(event, context):
+def handler(event, context):
     bucket = os.environ["BUCKET"]
-    job_name = os.environ["GLUE_JOB_NAME"]
-    source_url = os.environ["SOURCE_API_URL"]
-    raw_prefix = os.environ.get("RAW_PREFIX", "raw/fuel/")
+    glue_job_name = os.environ["GLUE_JOB_NAME"]
+    source_api_url = os.environ["SOURCE_API_URL"]
 
+    run_id = _utc_run_id()
 
-    with urllib.request.urlopen(source_url, timeout=20) as resp:
+    # 1) Fetch API (JSON)
+    req = urllib.request.Request(
+        source_api_url,
+        headers={"User-Agent": "fuel-pipeline/1.0"}
+    )
+    with urllib.request.urlopen(req, timeout=30) as resp:
         payload = resp.read().decode("utf-8")
 
     data = json.loads(payload)
+    results = data.get("results", [])
+    if not results:
+        raise Exception("API returned 0 results. Check SOURCE_API_URL / where / limit.")
 
-
-    records = data.get("results", data)
-
-
-    now = datetime.datetime.utcnow()
-    ds = now.strftime("%Y-%m-%d")
-    ts = now.strftime("%H%M%S")
-    key = f"{raw_prefix}ingestion_date={ds}/{ts}_{uuid.uuid4().hex}.json"
-
-    body = "\n".join(json.dumps(r, ensure_ascii=False) for r in records)
-    s3.put_object(Bucket=bucket, Key=key, Body=body.encode("utf-8"))
-
-    # 3) Lancer le Glue Job
-    glue.start_job_run(
-        JobName=job_name,
-        Arguments={
-            "--bucket": bucket,
-            "--raw_prefix": raw_prefix,
-            "--curated_prefix": "curated/fuel/",
-        },
+    # 2) Write RAW to S3
+    raw_key = f"raw/run_id={run_id}/fuel_raw_{run_id}.json"
+    s3.put_object(
+        Bucket=bucket,
+        Key=raw_key,
+        Body=payload.encode("utf-8"),
+        ContentType="application/json"
     )
 
-    return {"status": "OK", "s3_raw_key": key, "glue_job": job_name}
+    # 3) Start Glue Job (transform RAW -> CURATED)
+    input_path = f"s3://{bucket}/{raw_key}"
+    output_path = f"s3://{bucket}/curated/run_id={run_id}/"
+
+    glue_resp = glue.start_job_run(
+        JobName=glue_job_name,
+        Arguments={
+            "--INPUT_PATH": input_path,
+            "--OUTPUT_PATH": output_path,
+            "--RUN_ID": run_id
+        }
+    )
+
+    return {
+        "statusCode": 200,
+        "run_id": run_id,
+        "raw_s3_path": input_path,
+        "curated_s3_path": output_path,
+        "glue_job_run_id": glue_resp.get("JobRunId")
+    }
