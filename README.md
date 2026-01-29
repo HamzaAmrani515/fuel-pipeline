@@ -86,19 +86,19 @@ Athena → Export CSV → Power BI
 ![S3 - 3](Docs/screenshots/img_2.png)
 
 ### 4) 
-![Glue - 1](Docs/screenshots/img_3.png)
+![ - 1](Docs/screenshots/img_3.png)
 
 ### 5) 
-![Glue - 2](Docs/screenshots/img_4.png)
+![ - 2](Docs/screenshots/img_4.png)
 
 ### 6) 
-![Lambda - 1](Docs/screenshots/img_5.png)
+![ - 1](Docs/screenshots/img_5.png)
 
 
 ### 7) 
-![Athena - 1](Docs/screenshots/img_8.png)
+![ - 1](Docs/screenshots/img_8.png)
 
 
 
 ### 9) 
-![Athena - 2](Docs/screenshots/img_10.png)
+![ - 2](Docs/screenshots/img_6.png)
